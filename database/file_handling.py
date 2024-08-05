@@ -25,7 +25,7 @@ class FileDeletionEvent():
     def __init__(self):
         self.events = {}
      
-def upload_file(files : list, modifieds : list, logger) -> list:    
+def upload_files(files : list, modifieds : list, logger) -> list:    
     for i in range(0, 128):
         if not os.path.exists(f'{UPLOAD_PATH}/{i}'):
             os.makedirs(f'{UPLOAD_PATH}/{i}')
@@ -72,7 +72,7 @@ def upload_file(files : list, modifieds : list, logger) -> list:
             
             file.save(fp)
             
-            handlers.append(FileHandler(generate_id(file.filename.split('.')[0]), fp, modifieds[i]))
+            handlers.append(FileHandler(_generate_id(file.filename.split('.')[0]), fp, modifieds[i]))
     
     t = []
     handlers = []
@@ -112,7 +112,7 @@ def upload_file(files : list, modifieds : list, logger) -> list:
     
     return handlers
 
-def generate_id(file : str):
+def _generate_id(file : str):
     random_value = secrets.token_hex(4)
     name = os.path.splitext(file)[0]
     hex_length = hex(len(name))[2:].zfill(2)
@@ -179,13 +179,16 @@ def validate_files(file : str):
 # This function is so large because we also handle the possibility that the file is not in the master_file_mappings.txt
 # I'm not sure how that happens, but it does. So we deal with it here when it's attempted to be retrieved.
 # TODO: check the deleted folder as well, so if the file handler is still floating around somehow it can be dealt with
-def get_handler(file_or_id : str) -> FileHandler:
+def get_handler(file_or_id : str, skip_subsequent_checks=False) -> FileHandler:
     with open(f'{UPLOAD_PATH}/master_file_mappings.txt', 'r') as f:
         lines = f.readlines()
         
         for line in lines:
             if file_or_id in line:
                 return _decode_file(line)
+    
+    if not skip_subsequent_checks:
+        return None
     
     # If the file is not in the master_file_mappings.txt, we need to check if it's a file path or an ID
     # here we check if it's a file path and handle it accordingly
@@ -200,7 +203,7 @@ def get_handler(file_or_id : str) -> FileHandler:
         else:
             print('File "', file_or_id, '" was found, but not in master_file_mappings.txt, adding...')
             with open(f'{UPLOAD_PATH}/master_file_mappings.txt', 'a') as f:
-                fp = f'{generate_id(name)}:{file_name}:{os.path.getmtime(file_or_id)}'
+                fp = f'{_generate_id(name)}:{file_name}:{os.path.getmtime(file_or_id)}'
                 f.write(f'{fp} \n')
                 return _decode_file(fp)
 
@@ -255,7 +258,7 @@ def subscribe_to_deletion_event(event_id : str, handler : Callable[[str], None])
     
     sig = inspect.signature(handler)
     if len(sig.parameters) != 1:
-        raise ValueError('Handler must not have any parameters')
+        raise ValueError('Handler must only take one parameter (str)')
     
     if event_id not in FileDeletedEvent.events:
         FileDeletedEvent.events[event_id] = []
