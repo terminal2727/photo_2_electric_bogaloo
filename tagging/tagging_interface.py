@@ -5,7 +5,7 @@ from tagging.tagging import tag, remove_file, TAG_DIR
 import os
 import random
 
-tagging_interface_blueprint = Blueprint('upload_interface', __name__)
+tagging_interface_blueprint = Blueprint('tagging_interface', __name__)
 
 VALID_NAMES = [
     'favorites',
@@ -23,8 +23,8 @@ class Tag():
         self.random_files = random.shuffle(files)
         self.current_file = files[0]
 
-@tagging_interface_blueprint.route('/tag', methods=['POST'])
-def tag():
+@tagging_interface_blueprint.route('/tag_file', methods=['POST'])
+def tag_file():
     _tag = request.data.decode('utf-8')
     
     if _tag is None:
@@ -76,10 +76,17 @@ def get_file():
         index = (index + 1) % len(CurrentTag.files)
     elif dir == 'prev':
         index = (index - 1) % len(CurrentTag.files)
+    elif isinstance(dir, int):
+        index = int(dir)
     else:
         return 'invalid dir'
     
     return _get_file_at(index)
+
+@tagging_interface_blueprint.route('/name', methods=['POST'])
+def name():
+    global CurrentTag
+    return CurrentTag.current_file.file_path
 
 @tagging_interface_blueprint.route('/randomize', methods=['POST'])
 def randomize():
@@ -100,11 +107,24 @@ def favorite():
         else:
             Favorites.files.remove(CurrentTag.current_file)
 
-@tagging_interface_blueprint.route('/is_favorited', methods=['GET'])
+@tagging_interface_blueprint.route('/is_favorited', methods=['POST'])
 def is_favorited():
     global Favorites
     file = CurrentTag.current_file
     return file in Favorites.files
+
+@tagging_interface_blueprint.route('/tag_length', methods=['POST'])
+def tag_length():
+    return len(CurrentTag.files)
+
+@tagging_interface_blueprint.route('/tag_list', methods=['POST'])
+def tag_list():
+    return [file[0] for file in os.listdir(TAG_DIR) if file.endswith('.txt')]
+
+@tagging_interface_blueprint.route('/tag_startup', methods=['POST'])
+def startup():
+    load_tag('untagged')
+    return _get_file_at(0)
 
 def tag_new_upload(handler, logger):
     if not os.path.exists(TAG_DIR):

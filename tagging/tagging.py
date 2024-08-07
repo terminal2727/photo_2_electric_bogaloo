@@ -27,6 +27,9 @@ def tag(tag, handler, logger, create_new_tag=True):
     with open(f'{TAG_DIR}/{tag}.txt', 'a') as f:
         f.write(f'{handler.id}\n')
     
+    if not os.path.exists(f'{TAG_DIR}/files'):
+        os.makedirs(f'{TAG_DIR}/files')
+    
     with open(f'{TAG_DIR}/files/{handler.id}.txt', 'a') as f:
         f.write(f'{tag}\n')
     
@@ -44,7 +47,7 @@ def untag(tag, handler, logger, delete_tag=True):
     if os.path.exists(f'{TAG_DIR}/{tag}.txt'):
         remove_line_from_file(handler.id, f'{TAG_DIR}/{tag}.txt')
         
-    with open(f'{TAG_DIR}/{handler.id}.txt', 'r') as f:
+    with open(f'{TAG_DIR}/files/{handler.id}.txt', 'r') as f:
         empty = len(f.readlines()) == 1 # We don't consider file type tags as tags - because every file has them
     
     if empty:

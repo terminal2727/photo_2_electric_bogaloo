@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <script src="{{ url_for('static', filename='home_scripts.js') }}" defer></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='home_styles.css') }}">
+    </head>
+    <body>
+        <button onclick="upload()">Upload</button>
+        <input type="file" id="file_input" accept="image/*" style="display: none;" multiple>
+        <button onclick="switchView('tags')">Tags</button>
+        <button onclick="switchView('albums')">Albums</button>
+        <button onclick="switchView('settings')">Settings</button>
+        <div id="upload">nuffin yet</div>
+    </body>
+</html>

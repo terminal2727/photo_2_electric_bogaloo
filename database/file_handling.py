@@ -35,10 +35,7 @@ def upload_files(files : list, modifieds : list, logger) -> list:
     for i in range(len(files)):
         #/guard clauses
         if not isinstance(files[i], FileStorage) or not isinstance(modifieds[i], str) or files[i].filename == '':
-            log(logger, f'{not isinstance(files[i], FileStorage)} \n 
-                          {not isinstance(modifieds[i], str)} \n 
-                          {files[i].filename == ''} \n'
-            )
+            log(logger, f'{not isinstance(files[i], FileStorage)} \n {not isinstance(modifieds[i], str)} \n {files[i].filename == ""} \n')
             continue
         #/end guard clauses
         
@@ -72,43 +69,41 @@ def upload_files(files : list, modifieds : list, logger) -> list:
             
             file.save(fp)
             
-            handlers.append(FileHandler(_generate_id(file.filename.split('.')[0]), fp, modifieds[i]))
+            handlers.append(FileHandler(_generate_id(file.filename.split('.')[0]), fp, str(modifieds[i])))
     
     t = []
-    handlers = []
+    handlers = [[] for _ in range(len(chunks))]
     for i, chunk in enumerate(chunks):
-        handlers[i] = []
-        t.append(
-            Thread(
-                target=process_chunk, 
-                args=(chunk, handlers[i], modifieds)
-            )
-            .start()
+        thread = Thread(
+            target=process_chunk, 
+            args=(chunk, handlers[i], modifieds)
         )
+        t.append(thread)
+        thread.start()
     
     for val in t:
+        if not isinstance(val, Thread):
+            raise ValueError('Thread did not start')
         val.join()
     
     # possible optimization: chunking files by length dirs and writing them all at once
-    def update_file_mappings(handlers : list, modifieds : list):
-        for i, file in enumerate(handlers):
-            name = os.path.basename(file.file_path).split('.')[0]
-            length = len(name) if len(name) < 128 else 127
+    def update_file_mappings(handle : FileHandler):
+        name = os.path.basename(handle.file_path).split('.')[0]
+        length = len(name) if len(name) < 128 else 127
+        
+        encoded = _encode_file(handle)
+        
+        with open(f'{UPLOAD_PATH}/{length}/file_mappings.txt', 'a') as f:
+            f.write(f'{encoded} \n')
             
-            encoded = _encode_file(file, modifieds[i])
-            
-            with open(f'{UPLOAD_PATH}/{length}/file_mappings.txt', 'a') as f:
-                f.write(f'{encoded} \n')
-    
-    for handle in handlers:
-        for file in handle:
-            update_file_mappings(file, modifieds[files.index(file)])
+    handlers = [handle for handles in handlers for handle in handles]
+    for handler in handlers:
+        update_file_mappings(handler)
 
     with open(f'{UPLOAD_PATH}/master_file_mappings.txt', 'a') as f:
-        for handle in handlers:
-            for file in handle:
-                encoded = _encode_file(file, modifieds[files.index(file)])
-                f.write(f'{encoded} \n')
+        for handler in handlers:
+            encoded = _encode_file(handler)
+            f.write(f'{encoded} \n')
     
     return handlers
 
@@ -243,8 +238,8 @@ def get_handler(file_or_id : str, skip_subsequent_checks=False) -> FileHandler:
     
     print('File not found in master_file_mappings.txt: ', file_or_id)
 
-def _encode_file(file : FileHandler, modified : str) -> str:
-    return f'{file.id}:{file.file_path}:{modified}'
+def _encode_file(file : FileHandler) -> str:
+    return f'{file.id}:{file.file_path}:{file.modified}'
 
 def _decode_file(file : str) -> FileHandler:
     id, path, modified = file.split(':')

@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 import utils.message_logging as ml
-import file_handling as fh
+import database.file_handling as fh
 import tagging.tagging_interface as tag_interface
 
 upload_interface_blueprint = Blueprint('upload_interface', __name__)
