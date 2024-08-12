@@ -1,8 +1,9 @@
-from flask import Flask, Blueprint, render_template
+from flask import Flask
 from server.api_setup import register_blueprints
 from server.client_view import render_home
 import os
 import signal
+import os
 
 app = Flask(__name__)
 

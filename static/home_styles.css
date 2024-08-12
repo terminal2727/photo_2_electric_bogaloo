@@ -32,3 +32,20 @@ body {
 .btn:hover {
     background-color: #a5a5a5;
 }
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.photo {
+    width: 30%;
+    margin: 1%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.photo img {
+    width: 100%;
+    height: auto;
+}

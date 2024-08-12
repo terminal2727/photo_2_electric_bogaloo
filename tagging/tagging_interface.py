@@ -23,7 +23,7 @@ class Tag():
         self.random_files = random.shuffle(files)
         self.current_file = files[0]
 
-@tagging_interface_blueprint.route('/tag_file', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/tag_file', methods=['POST'])
 def tag_file():
     _tag = request.data.decode('utf-8')
     
@@ -35,7 +35,7 @@ def tag_file():
     
     return logger.get_message()
 
-@tagging_interface_blueprint.route('/load_tag', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/load_tag', methods=['POST'])
 def load_tag():
     global CurrentTag, Favorites
     
@@ -63,7 +63,7 @@ def load_tag():
     
     return _get_file_at(CurrentTag.current_file)
 
-@tagging_interface_blueprint.route('/next_file', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/next_file', methods=['POST'])
 def get_file():
     global CurrentTag, Random
     dir = request.args.get('dir')
@@ -83,19 +83,19 @@ def get_file():
     
     return _get_file_at(index)
 
-@tagging_interface_blueprint.route('/name', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/name', methods=['POST'])
 def name():
     global CurrentTag
     return CurrentTag.current_file.file_path
 
-@tagging_interface_blueprint.route('/randomize', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/randomize', methods=['POST'])
 def randomize():
     global Random
     Random = not Random
     if not Random:
         CurrentTag.random_files = random.shuffle(CurrentTag.files)
 
-@tagging_interface_blueprint.route('/favorite', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/favorite', methods=['POST'])
 def favorite():
     global Favorites, CurrentTag
     
@@ -107,21 +107,21 @@ def favorite():
         else:
             Favorites.files.remove(CurrentTag.current_file)
 
-@tagging_interface_blueprint.route('/is_favorited', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/is_favorited', methods=['POST'])
 def is_favorited():
     global Favorites
     file = CurrentTag.current_file
     return file in Favorites.files
 
-@tagging_interface_blueprint.route('/tag_length', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/tag_length', methods=['POST'])
 def tag_length():
     return len(CurrentTag.files)
 
-@tagging_interface_blueprint.route('/tag_list', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/tag_list', methods=['POST'])
 def tag_list():
     return [file[0] for file in os.listdir(TAG_DIR) if file.endswith('.txt')]
 
-@tagging_interface_blueprint.route('/tag_startup', methods=['POST'])
+@tagging_interface_blueprint.route('/tag/tag_startup', methods=['POST'])
 def startup():
     load_tag('untagged')
     return _get_file_at(0)

@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Home</title>
-        <script src="{{ url_for('static', filename='home_scripts.js') }}" defer></script>
+        <title>Vaults</title>
+        <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+        <script src="https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js"></script>
+        <script src="{{ url_for('static', filename='home_scripts.js') }}" type="module" defer></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='home_styles.css') }}">
     </head>
     <body>
-        <button onclick="upload()">Upload</button>
-        <input type="file" id="file_input" accept="image/*" style="display: none;" multiple>
-        <button onclick="switchView('tags')">Tags</button>
-        <button onclick="switchView('albums')">Albums</button>
-        <button onclick="switchView('settings')">Settings</button>
-        <div id="upload">nuffin yet</div>
+        <div class="gallery"></div>
     </body>
 </html>
